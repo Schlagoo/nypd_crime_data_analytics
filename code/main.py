@@ -78,8 +78,36 @@ def get_age_perpetrator_and_victim(data: pd.DataFrame) -> list:
     :param      data    pandas dataframe containing all informations
     :return     list    age of perpetator and victim
     """
+    
+    # Possible values: <18, 18-24, 25-44, 45-64, unknown
+    sex_perpetrators = {"<18": 0, "18-24": 0, "25-44": 0, "45-64": 0, "65+": 0, "UNKNOWN": 0}
+    sex_victims = {"<18": 0, "18-24": 0, "25-44": 0, "45-64": 0, "65+": 0, "UNKNOWN": 0}
 
-    pass
+    data["PERP_AGE_GROUP"] = data["PERP_AGE_GROUP"].fillna("UNKNOWN")
+    data["VIC_AGE_GROUP"] = data["VIC_AGE_GROUP"].fillna("UNKNOWN")
+    
+    # Count sex of perpetrators and victims
+    for entry in data["PERP_AGE_GROUP"]:
+        if "1020" in entry or "224" in entry or "940" in entry:
+            sex_perpetrators["UNKNOWN"] += 1
+        else:
+            sex_perpetrators[str(entry)] += 1
+
+    for entry in data["VIC_AGE_GROUP"]:
+        sex_victims[str(entry)] += 1
+    
+    # Plot age groups of perpetrator and victim
+    plt.bar(sex_victims.keys(), sex_victims.values(), label="Victim")
+    plt.bar(sex_perpetrators.keys(), sex_perpetrators.values(), label="Perpetrator")
+
+    # Add metadata
+    plt.legend()
+    plt.title("Distribution of age groups")
+    plt.xlabel("Age group")
+    plt.ylabel("affected persons")
+    
+    # Show plot
+    plt.show()
 
 
 def get_likelyhood_by_daytime(data: pd.DataFrame) -> str:
@@ -170,17 +198,6 @@ def get_sex_rate_perpetrator(data: pd.DataFrame) -> list:
     return sex_perpetrators, sex_victims
 
 
-def count_race_perpetrator(data: pd.DataFrame) -> list:
-
-    """ Get distribution of perpetrators race
-
-    :param      data    pandas dataframe containing all informations
-    :return     list    counters of perpetrator by race
-    """
-
-    pass
-
-
 def shootings_per_year(data: pd.DataFrame):
 
     """ Plot shooting incidents per year from 2006 until 2018
@@ -247,8 +264,11 @@ def main():
     #shootings_per_year(data["OCCUR_DATE"])
     
     # Get most likely time of incident
-    time = get_likelyhood_by_daytime(data["OCCUR_TIME"])
-    print("Most likely time: {}".format(time))
+    #time = get_likelyhood_by_daytime(data["OCCUR_TIME"])
+    #print("Most likely time: {}".format(time))
+
+    # Calculate most likely age group
+    get_age_perpetrator_and_victim(data)
 
 
 if __name__ == "__main__":
