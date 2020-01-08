@@ -6,8 +6,11 @@
 """
 
 import json
+import numpy as np
 import pandas as pd
+from datetime import datetime
 import matplotlib.pyplot as plt
+from collections import OrderedDict
 
 
 PATH_TO_DATA = r"../data/NYPD_Shooting_Incident_Data__Historic_.csv"
@@ -79,15 +82,39 @@ def get_age_perpetrator_and_victim(data: pd.DataFrame) -> list:
     pass
 
 
-def get_most_likely_time(data: pd.DataFrame) -> str:
+def get_likelyhood_by_daytime(data: pd.DataFrame) -> str:
 
     """ Calculate average time of shooting
     
-    :param      data    pandas dataframe containing all informations
+    :param      data    containing all occur timestamps of shootings
     :return     str     most likely time of day for shooting incident
     """
+
+    hour_counters = {}
     
-    pass
+    # Count shootings per hour of day
+    for entry in data:
+        hour, _, _ = entry.split(":")
+        if int(hour) not in hour_counters:
+            hour_counters[int(hour)] = 0
+        else:
+            hour_counters[int(hour)] += 1
+    
+    # Sort dict by hours
+    sorted_hour_counters = OrderedDict(sorted(hour_counters.items()))
+    
+    # Plot shootings by month
+    plt.plot(sorted_hour_counters.keys(), sorted_hour_counters.values())
+    plt.fill_between(sorted_hour_counters.keys(), sorted_hour_counters.values())
+
+    # Add metadata
+    plt.title("New York shooting incidents by hour of day")
+    plt.xlabel("Hour [h]")
+    plt.ylabel("Incidents")
+    plt.xticks(np.arange(len(sorted_hour_counters.keys())), sorted_hour_counters.keys(), rotation=0)
+    
+    # Show plot
+    plt.show()
 
 
 def get_most_likely_month(data: pd.DataFrame, year: int):
@@ -154,6 +181,37 @@ def count_race_perpetrator(data: pd.DataFrame) -> list:
     pass
 
 
+def shootings_per_year(data: pd.DataFrame):
+
+    """ Plot shooting incidents per year from 2006 until 2018
+
+    :param      data    pandas dataframe containing all column of all occur dates
+    """
+
+    year_counters = {}
+    
+    # Count shooting incidents per year
+    for entry in data:
+        if entry[6:] not in year_counters:
+            year_counters[entry[6:]] = 0
+        else:
+            year_counters[entry[6:]] += 1
+    
+    # Sort dict entries by key
+    sorted_year_counters = OrderedDict(sorted(year_counters.items()))
+
+    # Plot shootings by month
+    plt.bar(sorted_year_counters.keys(), sorted_year_counters.values())
+    
+    # Add metadata
+    plt.title("Number of New York shooting incidents by year")
+    plt.xlabel("Year")
+    plt.ylabel("Incidents")
+    
+    # Show plot
+    plt.show()
+
+
 def main():
     
     """ Main to run functionality
@@ -181,8 +239,16 @@ def main():
     #get_most_likely_month_and_season(altered_data["OCCUR_DATE"], year)
     
     # Get male/female ratio
-    sex_perpetrators, sex_victims = get_sex_rate_perpetrator(altered_data)
-    print("Sex perpetrators:\n{perp}\n\nSex victims:\n{vict}".format(perp=json.dumps(sex_perpetrators, indent=1), vict=json.dumps(sex_victims, indent=1)))
+    #sex_perpetrators, sex_victims = get_sex_rate_perpetrator(altered_data)
+    #print("Sex perpetrators:\n{perp}\n\nSex victims:\n{vict}".format( \
+            #perp=json.dumps(sex_perpetrators, indent=1), vict=json.dumps(sex_victims, indent=1)))
+    
+    # Plot shooting incidents per year
+    #shootings_per_year(data["OCCUR_DATE"])
+    
+    # Get most likely time of incident
+    time = get_likelyhood_by_daytime(data["OCCUR_TIME"])
+    print("Most likely time: {}".format(time))
 
 
 if __name__ == "__main__":
