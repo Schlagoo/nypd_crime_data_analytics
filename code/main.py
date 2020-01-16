@@ -43,7 +43,7 @@ def plot_crime_locations(data: pd.DataFrame):
     plt.scatter(data["Longitude"], data["Latitude"], c="r", alpha=0.2, zorder=1)
     
     # Set legend
-    plt.title("NYPD crimes in 2018")
+    plt.title("NYPD reported shootings in 2018")
     plt.xlabel("Longitude")
     plt.ylabel("Latitude")
     
@@ -80,8 +80,8 @@ def get_age_perpetrator_and_victim(data: pd.DataFrame) -> list:
     """
     
     # Possible values: <18, 18-24, 25-44, 45-64, unknown
-    sex_perpetrators = {"<18": 0, "18-24": 0, "25-44": 0, "45-64": 0, "65+": 0, "UNKNOWN": 0}
-    sex_victims = {"<18": 0, "18-24": 0, "25-44": 0, "45-64": 0, "65+": 0, "UNKNOWN": 0}
+    age_perpetrators = {"<18": 0, "18-24": 0, "25-44": 0, "45-64": 0, "65+": 0, "UNKNOWN": 0}
+    age_victims = {"<18": 0, "18-24": 0, "25-44": 0, "45-64": 0, "65+": 0, "UNKNOWN": 0}
 
     data["PERP_AGE_GROUP"] = data["PERP_AGE_GROUP"].fillna("UNKNOWN")
     data["VIC_AGE_GROUP"] = data["VIC_AGE_GROUP"].fillna("UNKNOWN")
@@ -89,16 +89,18 @@ def get_age_perpetrator_and_victim(data: pd.DataFrame) -> list:
     # Count sex of perpetrators and victims
     for entry in data["PERP_AGE_GROUP"]:
         if "1020" in entry or "224" in entry or "940" in entry:
-            sex_perpetrators["UNKNOWN"] += 1
+            age_perpetrators["UNKNOWN"] += 1
         else:
-            sex_perpetrators[str(entry)] += 1
+            age_perpetrators[str(entry)] += 1
+    print(age_perpetrators.values())
 
     for entry in data["VIC_AGE_GROUP"]:
-        sex_victims[str(entry)] += 1
-    
+        age_victims[str(entry)] += 1
+    print(age_victims.values())
+
     # Plot age groups of perpetrator and victim
-    plt.bar(sex_victims.keys(), sex_victims.values(), label="Victim")
-    plt.bar(sex_perpetrators.keys(), sex_perpetrators.values(), label="Perpetrator")
+    plt.bar(age_victims.keys(), age_victims.values(), label="Victim")
+    plt.bar(age_perpetrators.keys(), age_perpetrators.values(), label="Perpetrator")
 
     # Add metadata
     plt.legend()
@@ -130,7 +132,8 @@ def get_likelyhood_by_daytime(data: pd.DataFrame) -> str:
     
     # Sort dict by hours
     sorted_hour_counters = OrderedDict(sorted(hour_counters.items()))
-    
+    print(sorted_hour_counters.values())
+
     # Plot shootings by month
     plt.plot(sorted_hour_counters.keys(), sorted_hour_counters.values())
     plt.fill_between(sorted_hour_counters.keys(), sorted_hour_counters.values())
@@ -160,7 +163,8 @@ def get_most_likely_month(data: pd.DataFrame, year: int):
     for entry in data:
         month = str(entry)[0:2]
         month_counters[month] += 1
-    
+    print(month_counters.values())
+
     # Plot shootings by month
     plt.bar(month_counters.keys(), month_counters.values())
     
@@ -216,6 +220,7 @@ def shootings_per_year(data: pd.DataFrame):
     
     # Sort dict entries by key
     sorted_year_counters = OrderedDict(sorted(year_counters.items()))
+    print(sorted_year_counters.values())
 
     # Plot shootings by month
     plt.bar(sorted_year_counters.keys(), sorted_year_counters.values())
@@ -246,14 +251,14 @@ def main():
             altered_data = altered_data.append(row, ignore_index = True)
     
     # Print murder rate
-    #murder_rate = get_murder_rate(altered_data["STATISTICAL_MURDER_FLAG"])
+    #murder_rate = get_murder_rate(data["STATISTICAL_MURDER_FLAG"])
     #print("Murder rate in {year}:\t{rate} %".format(year=year, rate=murder_rate))
     
     # Visualize crime locations on map
     #plot_crime_locations(altered_data)
 
     # Show shootings by month and year
-    #get_most_likely_month_and_season(altered_data["OCCUR_DATE"], year)
+    #get_most_likely_month(data["OCCUR_DATE"], year)
     
     # Get male/female ratio
     #sex_perpetrators, sex_victims = get_sex_rate_perpetrator(altered_data)
@@ -264,11 +269,10 @@ def main():
     #shootings_per_year(data["OCCUR_DATE"])
     
     # Get most likely time of incident
-    #time = get_likelyhood_by_daytime(data["OCCUR_TIME"])
-    #print("Most likely time: {}".format(time))
+    #get_likelyhood_by_daytime(altered_data["OCCUR_TIME"])
 
     # Calculate most likely age group
-    get_age_perpetrator_and_victim(data)
+    get_age_perpetrator_and_victim(altered_data)
 
 
 if __name__ == "__main__":
